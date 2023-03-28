@@ -68,7 +68,7 @@ def btc():
     df.drop_duplicates(inplace = True)
 
     # Add EHMA indicator
-    period = 20
+    period = 10
     sqrt_period = np.sqrt(period)
 
     def John_Ehlers(x, y):
