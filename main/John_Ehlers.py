@@ -2,16 +2,20 @@
 import pandas as pd
 from perp_bitget import PerpBitget
 import ccxt
-
-from datetime import datetime
-import time
+import numpy as np
+import requests
 import json
+import time
+import os
+from datetime import datetime
 
 now = datetime.now()
 current_time = now.strftime("%d/%m/%Y %H:%M:%S")
 print("--- Start Execution Time :", current_time, "---")
 
 
+
+# Connection to API (To update in the AWS' server)
 f = open(
     "../api_connection.json")
 api_connection = json.load(f)
@@ -29,16 +33,6 @@ print(f"--- {pair} {timeframe} Leverage x {leverage} ---")
 type = ["long", "short"]
 
 
-import pandas as pd
-import numpy as np
-import requests
-import json
-import time
-from datetime import datetime
-import os
-
-
-#Path = os.path.dirname( os.path.abspath(__file__))
 def btc():
     url = "https://www.bitstamp.net/api/v2/ohlc/btcusd/"
     timeframe = 86400
@@ -67,7 +61,7 @@ def btc():
 
     df.drop_duplicates(inplace = True)
 
-    # Add EHMA indicator
+    # Add indicator
     period = 10
     sqrt_period = np.sqrt(period)
 
@@ -89,16 +83,12 @@ def btc():
     return df
 
 
-
+# Trading actions
 def open_long(row):
     if row['ehma'] > row['ehma_1']:
         return True
     else:
         return False
-
-
-
-
 
 
 def close_long(row):
@@ -114,16 +104,14 @@ def open_short(row):
         return False
 
 
-
-
-
-
 def close_short(row):
     if row['ehma'] > row['ehma_1']:
         return True
     else:
         return False
 
+
+#Connection
 bitget = PerpBitget(
     apiKey=api_connection[account_to_select]["apiKey"],
     secret=api_connection[account_to_select]["secret"],
@@ -133,7 +121,7 @@ bitget = PerpBitget(
 # Get data
 df = btc().copy()
 
-# balance
+# Get balance
 usd_balance = float(bitget.get_usdt_equity())
 print("USD balance :", round(usd_balance, 2), "$")
 
@@ -145,6 +133,8 @@ position = [
 
 row = df.iloc[-1]
 
+
+# Trading Account positions
 if len(position) > 0:
     position = position[0]
     print(f"Current position : {position}")
