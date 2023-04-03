@@ -26,7 +26,7 @@ production = True
 
 pair = "BTC/USDT:USDT"
 timeframe = "1d"
-leverage = 1
+leverage = 2
 
 print(f"--- {pair} {timeframe} Leverage x {leverage} ---")
 
@@ -62,7 +62,7 @@ def btc():
     df.drop_duplicates(inplace = True)
 
     # Add indicator
-    period = 10
+    period = 63
     sqrt_period = np.sqrt(period)
 
     def John_Ehlers(x, y):
@@ -177,7 +177,7 @@ if len(position) > 0:
             bitget.place_market_order(pair, "buy", close_short_quantity, reduce=True)
 
         long_market_price = float(df.iloc[-1]["close"])
-        long_quantity_in_usd = usd_balance * leverage
+        long_quantity_in_usd = usd_balance * leverage/2
         long_quantity = float(bitget.convert_amount_to_precision(pair, float(
             bitget.convert_amount_to_precision(pair, long_quantity_in_usd / long_market_price)
         )))
@@ -206,7 +206,7 @@ else:
 
     elif open_short(row) and "short" in type:
         short_market_price = float(df.iloc[-1]["close"])
-        short_quantity_in_usd = usd_balance * leverage
+        short_quantity_in_usd = usd_balance * leverage/2
         short_quantity = float(bitget.convert_amount_to_precision(pair, float(
             bitget.convert_amount_to_precision(pair, short_quantity_in_usd / short_market_price)
         )))
