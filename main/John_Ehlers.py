@@ -8,6 +8,38 @@ import json
 import time
 import os
 from datetime import datetime
+import yfinance as yf
+
+df = yf.Ticker('ADA-USD').history(period="5y", interval='1d')
+df.reset_index(drop = False, inplace = True)
+df.columns = df.columns.str.lower()
+#print(df.tail())
+df.drop(columns=['dividends','stock splits'], inplace=True)
+#df.columns = df.columns.str.capitalize()
+df.rename(columns = {'date':'timestamp'},inplace=True)
+df.set_index('timestamp', inplace=True)
+
+df.drop(columns=df.columns.difference(['open','high','low','close','volume']), inplace=True)
+
+period = 22
+sqrt_period = np.sqrt(period)
+
+def John(x, y):
+    alpha = 2 / (y + 1)
+    sum = np.zeros(len(x))
+    sum[0] = alpha * x[0]
+    for i in range(1, len(x)):
+        sum[i] = alpha * x[i] + (1 - alpha) * sum[i-1]
+    return sum
+
+close_ema1 = John(df['close'], int(period / 2))
+close_ema2 = John(df['close'], period)
+ehma = John(2 * close_ema1 - close_ema2, sqrt_period)
+
+df['ehma'] = ehma
+df['ehma_1'] = df['ehma'].shift(1)
+df.columns = df.columns.str.lower()
+
 
 now = datetime.now()
 current_time = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -33,54 +65,6 @@ print(f"--- {pair} {timeframe} Leverage x {leverage} ---")
 type = ["long", "short"]
 
 
-def btc():
-    url = "https://www.bitstamp.net/api/v2/ohlc/btcusd/"
-    timeframe = 86400
-    start_date = 1312174800
-    end_date = int(time.time())
-
-    # set the maximum number of data points to return per request
-    limit = 1000
-
-    data_list = []
-    while start_date <= end_date:
-
-        request_end_date = min(start_date + limit*timeframe, end_date)
-        response = requests.get(url + "?step=" + str(timeframe) + "&start=" + str(start_date) + "&end=" + str(request_end_date) + "&limit=" + str(limit))
-        data = json.loads(response.text)
-        data_list += data['data']['ohlc']
-        start_date += limit*timeframe
-
-    df = pd.DataFrame(data_list)
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-    df[['open', 'high', 'low', 'close', 'volume']] = df[['open', 'high', 'low', 'close', 'volume']].astype(float)
-
-    df.set_index('timestamp',drop=True, inplace = True)
-    #df.columns = [e.capitalize() for e in df.columns]
-    df.sort_index(ascending = True, inplace= True)
-
-    df.drop_duplicates(inplace = True)
-
-    # Add indicator
-    period = 30
-    sqrt_period = np.sqrt(period)
-
-    def John_Ehlers(x, y):
-        alpha = 2 / (y + 1)
-        sum = np.zeros(len(x))
-        sum[0] = alpha * x[0]
-        for i in range(1, len(x)):
-            sum[i] = alpha * x[i] + (1 - alpha) * sum[i-1]
-        return sum
-
-    close_ema1 = John_Ehlers(df['close'], int(period / 2))
-    close_ema2 = John_Ehlers(df['close'], period)
-    ehma = John_Ehlers(2 * close_ema1 - close_ema2, sqrt_period)
-
-    df['ehma'] =ehma
-    df['ehma_1'] = df['ehma'].shift(1)
-
-    return df
 
 
 # Trading actions
@@ -118,8 +102,6 @@ bitget = PerpBitget(
     password=api_connection[account_to_select]["password"],
 )
 
-# Get data
-df = btc().copy()
 
 # Get balance
 usd_balance = float(bitget.get_usdt_equity())
