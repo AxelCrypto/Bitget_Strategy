@@ -5,9 +5,6 @@
 
 #### Past Performances:
 ```
-Period: [2018-04-05 00:00:00] -> [2023-04-05 00:00:00]
-Initial wallet: 1000.0 $
-
 --- General Information ---
 Period: [2018-04-05 00:00:00] -> [2023-04-05 00:00:00]
 Initial wallet: 1000.0 $
@@ -28,5 +25,5 @@ Best trades: +477.13 % the 2021-01-31 00:00:00+00:00 -> 2021-03-05 00:00:00+00:0
 Worst trades: -41.18 % the 2022-05-31 00:00:00+00:00 -> 2022-06-12 00:00:00+00:00
 
 ```
-
+Average Trade: Every 15 days
 
